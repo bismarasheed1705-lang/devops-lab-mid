@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>--Assignment Portal--</title>
+</head>
+<body>
+    <h2>Submit Assignment</h2>
+    <form id="submitForm">
+        <input type="text" id="name" placeholder="Name" required><br><br>
+        <input type="text" id="regNo" placeholder="Registration Number" required><br><br>
+        <input type="text" id="title" placeholder="Assignment Title" required><br><br>
+        <input type="url" id="url" placeholder="Submission URL" required><br><br>
+        <button type="button" onclick="handle()">Submit</button>
+    </form>
+    <p id="msg" style="color: rgb(247, 0, 255); font-weight: bold;"></p>
+    <ul id="list"></ul>
+
+    <script src="app.js"></script>
+    <script>
+        function handle() {
+            const res = submitAssignment(
+                document.getElementById('name').value,
+                document.getElementById('regNo').value,
+                document.getElementById('title').value,
+                document.getElementById('url').value
+            );
+            
+            document.getElementById('msg').innerText = res.message;
+            
+            if(res.success) {
+                document.getElementById('msg').style.color = "green";
+                const li = document.createElement('li');
+                const lastSub = res.submissions[res.submissions.length-1];
+                li.innerHTML = `<b>${lastSub.name}</b> (${lastSub.regNo}) - <a href="${lastSub.url}" target="_blank">${lastSub.title}</a>`;
+                document.getElementById('list').appendChild(li);
+            } else {
+                document.getElementById('msg').style.color = "red";
+            }
+        }
+    </script>
+</body>
+</html>

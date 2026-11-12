@@ -1,0 +1,70 @@
+name: DevOps Pipeline
+
+on:
+  push:
+    branches: [ "**" ]
+
+jobs:
+  test-and-report:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Run Automated Tests
+        id: test
+        run: npm test
+
+      - name: Process and Send Report to Localhost
+        if: always()
+        env:
+          NGROK_URL: ${{ secrets.NGROK_URL }}
+        run: node scripts/send-report.js
+
+      - name: Send Email Report (Bonus Task)
+        if: always()
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          username: ${{ secrets.EMAIL_USERNAME }}
+          password: ${{ secrets.EMAIL_PASSWORD }}
+          subject: DevOps Test Report - ${{ github.repository }}
+          to: ${{ secrets.EMAIL_TO }}
+          from: GitHub Actions
+          body: The pipeline has completed. Attached is the test report JSON.
+          attachments: formatted-report.json
+
+  deploy-to-pages:
+    needs: test-and-report
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v3
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: './public'
+
+      - name: Deploy to GitHub Pages (Bonus Task)
+        id: deployment
+        uses: actions/deploy-pages@v4
